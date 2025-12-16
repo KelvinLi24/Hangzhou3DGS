@@ -116,6 +116,12 @@
         .star-rating { font-size: 0.8rem; color: #fbbf24; letter-spacing: 2px; display: block; margin-top: 4px; }
 
         .card-body { padding: 15px; flex: 1; display: flex; flex-direction: column; }
+        
+        /* INFO ROW (NEW) */
+        .info-row { display: flex; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
+        .info-item { font-size: 0.75rem; color: #94a3b8; display: flex; align-items: center; gap: 4px; background: rgba(255,255,255,0.03); padding: 4px 8px; border-radius: 4px; }
+        .info-item.free { color: var(--accent-secondary); background: rgba(16, 185, 129, 0.1); }
+
         .tech-spec { margin-bottom: 12px; font-size: 0.9rem; color: #cbd5e1; }
         .tech-spec strong { color: var(--accent-secondary); font-weight: normal; }
         
@@ -263,7 +269,7 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 
 <script>
-    // --- DATA: ASSET LIBRARY ---
+    // --- DATA: ASSET LIBRARY (Updated with Tickets & Hours) ---
     const assetCategories = [
         {
             id: "core",
@@ -276,6 +282,8 @@
                     distText: "市區核心",
                     type: "金屬材質 / 建築",
                     rating: 5,
+                    ticket: "20元",
+                    hours: "07:00 - 17:00",
                     spec: "高反光銅殿 + 複雜斗拱",
                     reason: "【5星推薦】測試 3DGS 對金屬氧化紋理 (Patina) 及各向異性反射的還原能力。最重要的基準點。",
                     query: "杭州香積寺",
@@ -294,6 +302,8 @@
                     distText: "景區 (易堵)",
                     type: "木構 / 室內",
                     rating: 4,
+                    ticket: "免費",
+                    hours: "08:30 - 16:30",
                     spec: "13.6米楠木轉輪藏 + 宋式紅牆",
                     reason: "【4星推薦】全杭州最安靜的寺廟。挑戰室內複雜木結構的高精度重建，需解決光照不足問題。",
                     query: "慧因高麗寺",
@@ -306,6 +316,8 @@
                     distText: "遠郊 (1hr+)",
                     type: "大場景 / 對稱",
                     rating: 4,
+                    ticket: "30元 (含接駁車)",
+                    hours: "07:00 - 17:00",
                     spec: "宋代極簡風格 + 中軸線佈局",
                     reason: "【4星推薦】日本禪院鼻祖。建築尺度大，適合利用無人機測試對稱建築群的三維重建。",
                     query: "徑山萬壽禪寺",
@@ -318,6 +330,8 @@
                     distText: "市區 (河坊街)",
                     type: "晚清建築 / 白牆",
                     rating: 4,
+                    ticket: "10元 (博物館)",
+                    hours: "08:30 - 17:00",
                     spec: "高聳白牆 + 封火牆 + 藥局格局",
                     reason: "【4星推薦】『江南藥王』。典型的高牆窄巷結構，白色牆面對特徵點提取有一定挑戰性。",
                     query: "杭州胡慶餘堂",
@@ -330,6 +344,8 @@
                     distText: "市區",
                     type: "工業遺存",
                     rating: 3,
+                    ticket: "免費",
+                    hours: "全天開放",
                     spec: "銹跡油罐 + 網狀雲棚",
                     reason: "【3星推薦】開放式場地。適合測試細絲結構與金屬銹跡。結構相對簡單，作為補充素材。",
                     query: "杭州小河公園",
@@ -348,6 +364,8 @@
                     distText: "遠郊 (1.5hr+)",
                     type: "水系 / 徽派",
                     rating: 5,
+                    ticket: "免費",
+                    hours: "全天開放",
                     spec: "地下坎兒井 + 馬頭牆矩陣",
                     reason: "【5星推薦】獨有的獨立地下水系。高密度的馬頭牆非常適合無人機上帝視角掃描，幾何豐富。",
                     query: "桐廬深澳古村",
@@ -360,6 +378,8 @@
                     distText: "遠郊 (1hr+)",
                     type: "迷宮 / 石材",
                     rating: 4,
+                    ticket: "80元 (景區聯票)",
+                    hours: "08:00 - 16:30",
                     spec: "鵝卵石牆面 + 迷宮巷道",
                     reason: "【4星推薦】全鎮由鵝卵石鋪就，提供極高頻的幾何紋理 (High-frequency Texture)，測試細節解析度。",
                     query: "富陽龍門古鎮",
@@ -372,6 +392,8 @@
                     distText: "城北 (45min)",
                     type: "運河 / 橋樑",
                     rating: 4,
+                    ticket: "免費 (景點另收)",
+                    hours: "全天開放",
                     spec: "七孔廣濟橋 + 水面倒影",
                     reason: "【4星推薦】可測試 3DGS 對水面反射 (Water Reflection) 的處理效果。古橋幾何結構優美。",
                     query: "塘棲古鎮",
@@ -384,6 +406,8 @@
                     distText: "市區",
                     type: "市井 / 木構",
                     rating: 3,
+                    ticket: "免費",
+                    hours: "全天開放",
                     spec: "過塘行老屋 + 燈籠工藝",
                     reason: "【3星推薦】運河源頭。適合捕捉真實的生活痕跡與老化木材紋理，作為Day 1熱身。",
                     query: "杭州西興古鎮",
@@ -402,6 +426,8 @@
                     distText: "靈隱景區",
                     type: "石窟 / 雕刻",
                     rating: 5,
+                    ticket: "45元",
+                    hours: "07:00 - 17:30",
                     spec: "五代至元代石刻 + 複雜岩石表面",
                     reason: "【5星推薦】石窟造像具有極高的歷史價值與複雜幾何表面，是 Photogrammetry/3DGS 的頂級素材。",
                     query: "杭州飛來峰造像",
@@ -414,6 +440,8 @@
                     distText: "錢塘江畔",
                     type: "磚木結構 / 塔",
                     rating: 5,
+                    ticket: "20元(園)+10元(塔)",
+                    hours: "07:00 - 17:00",
                     spec: "13層八角結構 + 螺旋階梯",
                     reason: "【5星推薦】巨大的體量與重複的幾何層次，結構內外皆可掃描，檢驗結構一致性的完美目標。",
                     query: "杭州六和塔",
@@ -426,6 +454,8 @@
                     distText: "西湖邊",
                     type: "江南園林",
                     rating: 4,
+                    ticket: "10元",
+                    hours: "08:00 - 17:00",
                     spec: "水榭 + 假山 + 亭台",
                     reason: "【4星推薦】園林結構複雜，存在大量遮擋 (Occlusion) 與透視關係，是測試演算法強健性的好地方。",
                     query: "杭州郭莊",
@@ -438,6 +468,8 @@
                     distText: "市區",
                     type: "鐵路 / 石塔",
                     rating: 3,
+                    ticket: "免費",
+                    hours: "全天開放",
                     spec: "蒸汽火車頭 + 五代石塔",
                     reason: "【3星推薦】場地空曠，無人機飛行風險低。結合了石質文物與工業機械兩種材質。",
                     query: "杭州白塔公園",
@@ -554,6 +586,9 @@
                 // Generate Stars
                 let stars = '★'.repeat(item.rating) + '☆'.repeat(5 - item.rating);
 
+                // Ticket Class
+                let ticketClass = item.ticket.includes('免費') ? 'free' : '';
+
                 return `
                     <div class="asset-card">
                         <div class="card-header-row">
@@ -567,6 +602,10 @@
                             </div>
                         </div>
                         <div class="card-body">
+                            <div class="info-row">
+                                <div class="info-item ${ticketClass}">🎫 ${item.ticket}</div>
+                                <div class="info-item">🕒 ${item.hours}</div>
+                            </div>
                             <div class="tech-spec"><strong>資產特徵:</strong> ${item.spec}</div>
                             <div class="reason-box">
                                 <strong>3DGS 推薦理由：</strong>${item.reason}
