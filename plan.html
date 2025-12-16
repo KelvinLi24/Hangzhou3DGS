@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hangzhou 3DGS Proposal v13 (8-Day Plan)</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    
+    <style>
+        :root {
+            --bg-dark: #0f1115;
+            --bg-panel: #181b21;
+            --accent-primary: #3b82f6;
+            --accent-secondary: #10b981;
+            --accent-warn: #f59e0b;
+            --accent-danger: #ef4444;
+            --text-main: #e2e8f0;
+            --text-sub: #94a3b8;
+            --border-color: #2d3748;
+        }
+
+        body { margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: var(--bg-dark); color: var(--text-main); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+
+        /* HEADER */
+        header {
+            background: #1e293b;
+            padding: 15px 25px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            z-index: 100;
+        }
+
+        .project-title h1 { margin: 0; font-size: 1.25rem; font-weight: 700; color: #fff; letter-spacing: 0.5px; }
+        .project-title span { font-size: 0.8rem; color: var(--accent-primary); background: rgba(59, 130, 246, 0.1); padding: 2px 8px; border-radius: 4px; margin-left: 10px; border: 1px solid rgba(59, 130, 246, 0.2); }
+
+        .nav-tabs { display: flex; gap: 8px; background: #0f172a; padding: 4px; border-radius: 8px; border: 1px solid var(--border-color); }
+        .tab-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-sub);
+            padding: 6px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+        .tab-btn:hover { color: #fff; }
+        .tab-btn.active { background: var(--accent-primary); color: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+
+        /* MAIN CONTENT */
+        main { flex: 1; position: relative; overflow: hidden; }
+        .view-section { position: absolute; top: 0; left: 0; right: 0; bottom: 0; overflow-y: auto; display: none; padding: 30px; animation: fadeIn 0.3s ease; }
+        .view-section.active { display: block; }
+        
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* --- ASSET LIBRARY --- */
+        .intro-text { max-width: 800px; margin: 0 auto 30px auto; text-align: center; color: var(--text-sub); font-size: 0.95rem; line-height: 1.6; }
+
+        .category-section { margin-bottom: 40px; }
+        .category-title { font-size: 1.1rem; color: var(--accent-primary); margin-bottom: 15px; display: flex; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; }
+        .category-title::before { content: ''; display: inline-block; width: 6px; height: 18px; background: var(--accent-primary); margin-right: 10px; border-radius: 2px; }
+
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 20px; }
+
+        .asset-card {
+            background: var(--bg-panel);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            overflow: hidden;
+            transition: transform 0.2s, border-color 0.2s;
+            display: flex;
+            flex-direction: column;
+        }
+        .asset-card:hover { transform: translateY(-3px); border-color: var(--accent-primary); }
+
+        .card-header-row {
+            padding: 15px;
+            background: rgba(255,255,255,0.02);
+            border-bottom: 1px solid var(--border-color);
+        }
+        .card-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+        .card-title { font-weight: 700; color: #fff; margin: 0; font-size: 1.05rem; }
+        
+        .district-badge { 
+            font-size: 0.75rem; 
+            background: #1e293b; 
+            color: #94a3b8; 
+            padding: 2px 8px; 
+            border-radius: 4px; 
+            border: 1px solid #334155;
+            white-space: nowrap;
+        }
+
+        .card-sub-row { display: flex; justify-content: space-between; align-items: center; }
+        .card-type { font-size: 0.75rem; color: var(--text-sub); text-transform: uppercase; letter-spacing: 0.5px; }
+        
+        .dist-tag { font-size: 0.7rem; font-weight: bold; padding: 2px 6px; border-radius: 3px; }
+        .dist-near { color: var(--accent-secondary); background: rgba(16, 185, 129, 0.1); }
+        .dist-mid { color: var(--accent-warn); background: rgba(245, 158, 11, 0.1); }
+        .dist-far { color: var(--accent-danger); background: rgba(239, 68, 68, 0.1); }
+
+        .card-body { padding: 15px; flex: 1; display: flex; flex-direction: column; }
+        .tech-spec { margin-bottom: 12px; font-size: 0.9rem; color: #cbd5e1; }
+        .tech-spec strong { color: var(--accent-secondary); font-weight: normal; }
+        
+        .reason-box {
+            background: rgba(59, 130, 246, 0.05);
+            border-left: 3px solid var(--accent-primary);
+            padding: 10px;
+            font-size: 0.85rem;
+            color: #94a3b8;
+            margin-bottom: 15px;
+            line-height: 1.5;
+            flex: 1;
+        }
+
+        .action-row { display: flex; gap: 10px; margin-top: auto; }
+        .btn-link {
+            flex: 1;
+            padding: 8px 0;
+            text-align: center;
+            border-radius: 4px;
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 500;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        .btn-google { background: #2d3748; color: #e2e8f0; border: 1px solid #4a5568; }
+        .btn-google:hover { background: #4a5568; color: #fff; }
+        .btn-map { background: transparent; color: var(--accent-primary); border: 1px solid var(--accent-primary); }
+        .btn-map:hover { background: rgba(59, 130, 246, 0.1); }
+
+        /* --- ITINERARY --- */
+        .timeline-container { max-width: 900px; margin: 0 auto; }
+        .day-block {
+            background: var(--bg-panel);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            margin-bottom: 25px;
+            position: relative;
+            overflow: hidden;
+        }
+        .day-block.fixed { border-left: 4px solid var(--accent-secondary); } 
+        .day-block.tbd { border-left: 4px solid #f59e0b; border-style: dashed; } 
+        .day-block.free { border-left: 4px solid #3b82f6; } /* Free Day Blue */
+        .day-block.buffer { border-left: 4px solid #8b5cf6; } /* Buffer Day Purple */
+
+        .day-padding { padding: 20px; }
+
+        .day-header { display: flex; justify-content: space-between; margin-bottom: 15px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; }
+        .day-num { font-weight: 700; color: #fff; font-size: 1.1rem; }
+        .day-status { font-size: 0.8rem; padding: 2px 8px; border-radius: 4px; font-weight: 600; }
+        .status-fixed { background: rgba(16, 185, 129, 0.1); color: var(--accent-secondary); }
+        .status-select { background: rgba(245, 158, 11, 0.1); color: #f59e0b; }
+        .status-free { background: rgba(59, 130, 246, 0.1); color: var(--accent-primary); }
+        .status-buffer { background: rgba(139, 92, 246, 0.1); color: #a78bfa; }
+
+        /* COMMUTE METER */
+        .meter-wrapper {
+            background: rgba(0,0,0,0.3);
+            padding: 10px 20px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .meter-bar { flex: 1; height: 8px; background: #333; border-radius: 4px; overflow: hidden; }
+        .meter-fill { height: 100%; border-radius: 4px; transition: width 0.5s ease; }
+        .meter-label { font-size: 0.8rem; color: #ccc; font-family: monospace; white-space: nowrap; width: 150px; text-align: right; font-weight: bold; }
+
+        .time-slot { display: flex; margin-bottom: 12px; }
+        .ts-time { width: 60px; font-family: monospace; color: var(--text-sub); font-size: 0.9rem; padding-top: 2px; }
+        .ts-content { flex: 1; }
+        .ts-title { font-weight: 600; color: #e2e8f0; margin-bottom: 4px; }
+        .ts-desc { font-size: 0.9rem; color: #94a3b8; line-height: 1.5; }
+        .ts-assets { margin-top: 6px; display: flex; gap: 6px; flex-wrap: wrap; }
+        .asset-tag { font-size: 0.75rem; background: #1e293b; color: var(--accent-primary); padding: 2px 8px; border-radius: 4px; border: 1px solid #334155; }
+        
+        .empty-slot { border: 2px dashed #444; border-radius: 12px; padding: 30px; text-align: center; color: #666; transition: 0.3s; }
+        .empty-slot:hover { border-color: var(--accent-primary); color: #fff; background: rgba(59, 130, 246, 0.05); }
+        .empty-slot h3 { margin: 0 0 10px 0; font-size: 1.1rem; }
+
+        /* --- MAP --- */
+        #map-view { padding: 0; }
+        #map { width: 100%; height: 100%; }
+        .map-label { background: transparent !important; border: none !important; box-shadow: none !important; color: #fff !important; font-weight: bold; font-size: 14px; text-shadow: 2px 2px 4px #000; }
+
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="project-title">
+        <h1>Project: Lost Hangzhou <span>3DGS 數位保存提案 (8-Day Plan)</span></h1>
+    </div>
+    <div class="nav-tabs">
+        <button class="tab-btn active" onclick="switchView('assets')">1. 選項庫 (Assets)</button>
+        <button class="tab-btn" onclick="switchView('itinerary')">2. 行程規劃 (Plan)</button>
+        <button class="tab-btn" onclick="switchView('map')">3. 分佈地圖 (Map)</button>
+    </div>
+</header>
+
+<main>
+    <div id="view-assets" class="view-section active">
+        <div class="intro-text">
+            <p>本提案旨在利用 3D Gaussian Splatting 技術數位化保存杭州被忽視的文化遺產。以下為經過篩選的潛在掃描地點，按技術特徵分類，供指導教授評估選擇。</p>
+        </div>
+
+        <div id="assets-container">
+            </div>
+    </div>
+
+    <div id="view-itinerary" class="view-section">
+        <div class="timeline-container" id="itinerary-container">
+            </div>
+    </div>
+
+    <div id="view-map" class="view-section" id="map-view">
+        <div id="map"></div>
+    </div>
+</main>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+<script>
+    // --- DATA: ASSET LIBRARY ---
+    const assetCategories = [
+        {
+            id: "core",
+            title: "核心必選 (Technical Benchmarks)",
+            items: [
+                {
+                    name: "香積寺 (Xiangji Temple)",
+                    area: "拱墅區",
+                    dist: "near",
+                    distText: "市區核心",
+                    type: "金屬材質 / 建築",
+                    spec: "高反光銅殿 + 複雜斗拱",
+                    reason: "測試 3DGS 對金屬氧化紋理 (Patina) 及各向異性反射 (Anisotropy) 的還原能力。是本計畫最重要的技術基準點。",
+                    query: "杭州香積寺",
+                    lat: 30.296, lng: 120.147
+                }
+            ]
+        },
+        {
+            id: "structure",
+            title: "建築結構與幾何 (Geometry)",
+            items: [
+                {
+                    name: "慧因高麗寺",
+                    area: "西湖區",
+                    dist: "mid",
+                    distText: "景區 (易堵)",
+                    type: "木構 / 室內",
+                    spec: "13.6米楠木轉輪藏 + 宋式紅牆",
+                    reason: "全杭州最安靜的寺廟，適合長時間無干擾掃描。挑戰室內複雜木結構的高精度重建。",
+                    query: "慧因高麗寺 轉輪藏",
+                    lat: 30.228, lng: 120.125
+                },
+                {
+                    name: "徑山寺 (Jingshan Temple)",
+                    area: "餘杭區",
+                    dist: "far",
+                    distText: "遠郊 (1hr+)",
+                    type: "大場景 / 對稱",
+                    spec: "宋代極簡風格 + 中軸線佈局",
+                    reason: "日本禪院鼻祖。適合利用無人機測試對稱建築群 (Symmetry) 的大場景三維重建。",
+                    query: "徑山萬壽禪寺",
+                    lat: 30.380, lng: 119.855
+                },
+                {
+                    name: "小河公園 (Xiaohe Park)",
+                    area: "拱墅區",
+                    dist: "near",
+                    distText: "市區",
+                    type: "工業遺存",
+                    spec: "銹跡油罐 + 網狀雲棚",
+                    reason: "開放式場地。巨大的圓柱體油罐與網狀鋼結構，是測試『細絲結構』與『金屬銹跡』的絕佳素材。",
+                    query: "杭州小河公園 油罐",
+                    lat: 30.315, lng: 120.135
+                }
+            ]
+        },
+        {
+            id: "town",
+            title: "古鎮肌理 (Ancient Texture)",
+            items: [
+                {
+                    name: "深澳古村",
+                    area: "桐廬縣",
+                    dist: "far",
+                    distText: "遠郊 (1.5hr+)",
+                    type: "水系 / 徽派",
+                    spec: "地下坎兒井 + 馬頭牆矩陣",
+                    reason: "獨有的獨立地下水系 (需補光)。高密度的馬頭牆非常適合無人機上帝視角 (Top-down) 掃描。",
+                    query: "桐廬深澳古村",
+                    lat: 29.835, lng: 119.820
+                },
+                {
+                    name: "龍門古鎮",
+                    area: "富陽區",
+                    dist: "far",
+                    distText: "遠郊 (1hr+)",
+                    type: "迷宮 / 石材",
+                    spec: "鵝卵石牆面 + 迷宮巷道",
+                    reason: "孫權後裔聚居地。全鎮由鵝卵石鋪就，提供極高頻的幾何紋理 (High-frequency Texture)，測試細節解析度。",
+                    query: "富陽龍門古鎮",
+                    lat: 30.005, lng: 119.955
+                },
+                {
+                    name: "塘棲古鎮",
+                    area: "臨平區",
+                    dist: "mid",
+                    distText: "城北 (45min)",
+                    type: "運河 / 橋樑",
+                    spec: "七孔廣濟橋 + 水面倒影",
+                    reason: "京杭大運河上僅存的七孔石拱橋。可測試 3DGS 對水面反射 (Water Reflection) 的處理效果。",
+                    query: "塘棲古鎮 廣濟橋",
+                    lat: 30.435, lng: 120.190
+                },
+                {
+                    name: "西興古鎮",
+                    area: "濱江區",
+                    dist: "near",
+                    distText: "市區",
+                    type: "市井 / 木構",
+                    spec: "過塘行老屋 + 燈籠工藝",
+                    reason: "運河源頭，非商業化社區。適合捕捉真實的生活痕跡與老化木材紋理。",
+                    query: "杭州西興古鎮",
+                    lat: 30.180, lng: 120.230
+                }
+            ]
+        },
+        {
+            id: "nature",
+            title: "自然與混合場景 (Nature & Hybrid)",
+            items: [
+                {
+                    name: "梅家塢",
+                    area: "西湖區",
+                    dist: "mid",
+                    distText: "景區",
+                    type: "植被 / 地形",
+                    spec: "梯田茶園 + 農居",
+                    reason: "測試 3DGS 處理複雜植被 (Vegetation) 與地形起伏的能力。",
+                    query: "杭州梅家塢",
+                    lat: 30.200, lng: 120.080
+                },
+                {
+                    name: "白塔公園",
+                    area: "上城區",
+                    dist: "near",
+                    distText: "市區",
+                    type: "鐵路 / 石塔",
+                    spec: "蒸汽火車頭 + 五代石塔",
+                    reason: "場地空曠，無人機飛行風險低。結合了石質文物與工業機械兩種極端材質。",
+                    query: "杭州白塔公園",
+                    lat: 30.195, lng: 120.145
+                }
+            ]
+        }
+    ];
+
+    // --- DATA: ITINERARY PLAN ---
+    const itineraryData = [
+        {
+            day: "Day 1",
+            status: "fixed",
+            label: "抵達與適應",
+            commuteLevel: 10,
+            commuteText: "通勤：低 (市區)",
+            events: [
+                { time: "12:00", title: "抵達杭州", desc: "入住酒店 (建議選址：交通樞紐附近)。", assets: [] },
+                { time: "14:00", title: "西興古鎮 (推薦)", desc: "地點就在市區濱江區，人流稀少。作為器材測試與無人機試飛的首站。拍攝「過塘行」舊址。", assets: ["木質老化", "生活場景"] }
+            ]
+        },
+        {
+            day: "Day 2",
+            status: "fixed",
+            label: "核心任務 (Core Mission)",
+            commuteLevel: 30,
+            commuteText: "通勤：低 (拱墅區)",
+            events: [
+                { time: "06:30", title: "香積寺 (Xiangji Temple)", desc: "全境掃描。利用清晨光線拍攝銅殿、迴廊與鼓樓。這是本專案的「基準測試場景」。", assets: ["銅殿(Metal)", "Helix運鏡"] },
+                { time: "14:00", title: "周邊工業遺存 (可選)", desc: "建議前往附近的小河公園 (拱墅區)，掃描油罐與鋼結構，與早上的古典建築形成材質對比。", assets: ["工業銹跡"] },
+                { time: "20:00", title: "數據 QA 檢查", desc: "檢查當日素材覆蓋率，確認無屋頂破洞。", assets: [] }
+            ]
+        },
+        {
+            day: "Day 3",
+            status: "tbd",
+            label: "待定：遠郊古鎮考察",
+            commuteLevel: 90,
+            commuteText: "通勤：高 (往返3hr+)",
+            isBlank: true,
+            desc: "建議安排：深澳古村 (桐廬縣) 或 龍門古鎮 (富陽區)。均需長途交通，建議包車。"
+        },
+        {
+            day: "Day 4",
+            status: "tbd",
+            label: "待定：山林與禪意",
+            commuteLevel: 60,
+            commuteText: "通勤：中 (山路)",
+            isBlank: true,
+            desc: "建議安排：徑山寺 (餘杭區/對稱結構) 或 梅家塢茶園 (西湖區/自然植被)。"
+        },
+        {
+            day: "Day 5",
+            status: "tbd",
+            label: "待定：西湖隱秘角落",
+            commuteLevel: 50,
+            commuteText: "通勤：中 (景區堵車)",
+            isBlank: true,
+            desc: "建議安排：慧因高麗寺 (室內/西湖區) 或 饅頭山社區 (老街/上城區)。需極早出發避開遊客。"
+        },
+        {
+            day: "Day 6",
+            status: "fixed",
+            type: "free",
+            label: "自由活動日 (Free Day)",
+            commuteLevel: 0,
+            commuteText: "通勤：自行安排",
+            events: [
+                { time: "全天", title: "自由探索 / 城市漫遊", desc: "可自由前往西湖周邊遊覽，或針對感興趣的區域進行額外考察 (如白塔公園)。", assets: ["Free Exploration"] },
+                { time: "20:00", title: "數據整理", desc: "整理前幾日的掃描數據，準備最終匯報素材。", assets: ["Data Org"] }
+            ]
+        },
+        {
+            day: "Day 7",
+            status: "fixed",
+            type: "buffer",
+            label: "機動補拍日 (Buffer Day)",
+            commuteLevel: 20,
+            commuteText: "通勤：視地點而定",
+            events: [
+                { time: "09:00", title: "數據修復 (Data Recovery)", desc: "根據 D1-D5 的 QA 報告，返回有缺陷的地點 (如屋頂破損、水面重建失敗) 進行補拍。", assets: ["Re-shoot"] },
+                { time: "14:00", title: "備選考察", desc: "若所有數據完美，可前往白塔公園拍攝火車頭，或進行城市夜景掃描。", assets: ["Optional"] }
+            ]
+        },
+        {
+            day: "Day 8",
+            status: "fixed",
+            label: "結案與返程",
+            commuteLevel: 0,
+            commuteText: "通勤：無",
+            events: [
+                { time: "10:00", title: "最終檢查", desc: "確認所有硬碟數據備份完成 (Primary + Backup)。", assets: [] },
+                { time: "14:00", title: "返程", desc: "前往機場/高鐵站，結束行程。", assets: [] }
+            ]
+        }
+    ];
+
+    // --- RENDER LOGIC ---
+
+    function renderAssets() {
+        const container = document.getElementById('assets-container');
+        let html = '';
+
+        assetCategories.forEach(cat => {
+            let itemsHtml = cat.items.map(item => {
+                const googleUrl = `https://www.google.com/search?tbm=isch&q=${encodeURIComponent(item.query)}`;
+                const amapUrl = `https://www.amap.com/search?query=${encodeURIComponent(item.query)}&city=330100`;
+                
+                // Determine Distance Tag Class
+                let distClass = 'dist-near';
+                if(item.dist === 'mid') distClass = 'dist-mid';
+                if(item.dist === 'far') distClass = 'dist-far';
+
+                return `
+                    <div class="asset-card">
+                        <div class="card-header-row">
+                            <div class="card-top">
+                                <h3 class="card-title">${item.name}</h3>
+                                <span class="district-badge">${item.area}</span>
+                            </div>
+                            <div class="card-sub-row">
+                                <span class="card-type">${item.type}</span>
+                                <span class="dist-tag ${distClass}">${item.distText}</span>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="tech-spec"><strong>資產特徵:</strong> ${item.spec}</div>
+                            <div class="reason-box">
+                                <strong>選址理由：</strong>${item.reason}
+                            </div>
+                            <div class="action-row">
+                                <a href="${googleUrl}" target="_blank" class="btn-link btn-google">
+                                    🖼️ 看真實圖片
+                                </a>
+                                <a href="${amapUrl}" target="_blank" class="btn-link btn-map">
+                                    📍 高德導航
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            html += `
+                <div class="category-section">
+                    <div class="category-title">${cat.title}</div>
+                    <div class="grid">
+                        ${itemsHtml}
+                    </div>
+                </div>
+            `;
+        });
+
+        container.innerHTML = html;
+    }
+
+    function renderItinerary() {
+        const container = document.getElementById('itinerary-container');
+        let html = '';
+
+        itineraryData.forEach(day => {
+            let statusClass = '';
+            let statusText = '';
+            let blockClass = '';
+
+            // Status Logic
+            if (day.status === 'fixed') {
+                statusText = '已鎖定 (Fixed)';
+                if (day.type === 'free') {
+                    statusClass = 'status-free';
+                    blockClass = 'fixed free';
+                    statusText = '自由活動 (Free)';
+                } else if (day.type === 'buffer') {
+                    statusClass = 'status-buffer';
+                    blockClass = 'fixed buffer';
+                    statusText = '機動補拍 (Buffer)';
+                } else {
+                    statusClass = 'status-fixed';
+                    blockClass = 'fixed';
+                }
+            } else {
+                statusClass = 'status-select';
+                statusText = '待選擇 (Selectable)';
+                blockClass = 'tbd';
+            }
+
+            let contentHtml = '';
+            
+            if (day.isBlank) {
+                // TBD Content
+                contentHtml = `
+                    <div class="empty-slot">
+                        <h3>${day.desc}</h3>
+                    </div>
+                `;
+            } else {
+                // Fixed Content
+                contentHtml = day.events.map(e => {
+                    let tags = e.assets.map(a => `<span class="asset-tag">${a}</span>`).join('');
+                    return `
+                        <div class="time-slot">
+                            <div class="ts-time">${e.time}</div>
+                            <div class="ts-content">
+                                <div class="ts-title">${e.title}</div>
+                                <div class="ts-desc">${e.desc}</div>
+                                <div class="ts-assets">${tags}</div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            // Commute Meter Color Logic
+            let commuteLevel = day.commuteLevel || 0;
+            let barColor = `linear-gradient(90deg, #10b981, #10b981)`; // Default Green
+            if(commuteLevel > 40) barColor = `linear-gradient(90deg, #10b981, #f59e0b)`;
+            if(commuteLevel > 70) barColor = `linear-gradient(90deg, #10b981, #f59e0b, #ef4444)`;
+            if(commuteLevel === 0) barColor = `transparent`; 
+
+            html += `
+                <div class="day-block ${blockClass}">
+                    <div class="day-padding">
+                        <div class="day-header">
+                            <div class="day-num">${day.day}: ${day.label}</div>
+                            <div class="day-status ${statusClass}">${statusText}</div>
+                        </div>
+                        ${contentHtml}
+                    </div>
+                    
+                    <div class="meter-wrapper">
+                        <div class="meter-bar">
+                            <div class="meter-fill" style="width: ${commuteLevel}%; background: ${barColor}"></div>
+                        </div>
+                        <div class="meter-label">${day.commuteText}</div>
+                    </div>
+                </div>
+            `;
+        });
+
+        container.innerHTML = html;
+    }
+
+    // Map Logic
+    let map = null;
+    function initMap() {
+        if(map) return;
+        map = L.map('map').setView([30.15, 120.00], 9);
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+            attribution: '© OpenStreetMap © CARTO',
+            subdomains: 'abcd',
+            maxZoom: 19
+        }).addTo(map);
+
+        const allItems = assetCategories.flatMap(cat => cat.items.map(item => ({...item, catId: cat.id})));
+
+        allItems.forEach(item => {
+            let color = '#3b82f6';
+            if(item.catId === 'core') color = '#ef4444'; 
+            if(item.catId === 'town') color = '#f59e0b'; 
+            if(item.catId === 'structure') color = '#10b981';
+
+            const icon = L.divIcon({
+                className: 'custom-icon',
+                html: `<div style="background:${color};width:12px;height:12px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 8px ${color}"></div>`,
+                iconSize: [16, 16]
+            });
+
+            L.marker([item.lat, item.lng], {icon: icon})
+                .addTo(map)
+                .bindTooltip(item.name, {
+                    permanent: true,
+                    direction: 'top',
+                    className: 'map-label',
+                    offset: [0, -10]
+                });
+        });
+    }
+
+    function switchView(viewId) {
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        event.target.classList.add('active');
+        document.querySelectorAll('.view-section').forEach(sec => sec.classList.remove('active'));
+        document.getElementById(`view-${viewId}`).classList.add('active');
+
+        if(viewId === 'map') {
+            setTimeout(() => {
+                initMap();
+                map.invalidateSize();
+                const allItems = assetCategories.flatMap(cat => cat.items);
+                const bounds = allItems.map(i => [i.lat, i.lng]);
+                map.fitBounds(bounds, {padding: [50, 50]});
+            }, 100);
+        }
+    }
+
+    // Init
+    renderAssets();
+    renderItinerary();
+
+</script>
+
+</body>
+</html>
