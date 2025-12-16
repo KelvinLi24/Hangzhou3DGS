@@ -715,7 +715,30 @@
                     direction: 'top',
                     className: 'map-label',
                     offset: [0, -10]
+                })
+                .on('click', function() {
+                    window.open(`https://www.amap.com/search?query=${encodeURIComponent(item.query)}&city=330100`);
                 });
+        });
+
+        // PolyU Institute (Manual Injection)
+        const polyuIcon = L.divIcon({
+            className: 'custom-icon',
+            html: `<div style="background:#8b5cf6;width:12px;height:12px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 8px #8b5cf6"></div>`,
+            iconSize: [16, 16]
+        });
+        
+        const polyuMarker = L.marker([30.314, 120.161], {icon: polyuIcon})
+            .addTo(map)
+            .bindTooltip("香港理工大學杭州技術創新研究院", {
+                permanent: true,
+                direction: 'top',
+                className: 'map-label',
+                offset: [0, -10]
+            });
+            
+        polyuMarker.on('click', function() {
+            window.open('https://www.amap.com/search?query=香港理工大学杭州技术创新研究院&city=330100');
         });
     }
 
