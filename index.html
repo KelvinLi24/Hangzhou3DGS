@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hangzhou 3DGS Proposal v14 (No English)</title>
+    <title>Hangzhou 3DGS Proposal v16 (Rated & Expanded)</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
     
     <style>
@@ -104,6 +104,9 @@
         .dist-mid { color: var(--accent-warn); background: rgba(245, 158, 11, 0.1); }
         .dist-far { color: var(--accent-danger); background: rgba(239, 68, 68, 0.1); }
 
+        /* STAR RATING */
+        .star-rating { font-size: 0.8rem; color: #fbbf24; letter-spacing: 2px; display: block; margin-top: 4px;}
+
         .card-body { padding: 15px; flex: 1; display: flex; flex-direction: column; }
         .tech-spec { margin-bottom: 12px; font-size: 0.9rem; color: #cbd5e1; }
         .tech-spec strong { color: var(--accent-secondary); font-weight: normal; }
@@ -151,8 +154,8 @@
         }
         .day-block.fixed { border-left: 4px solid var(--accent-secondary); } 
         .day-block.tbd { border-left: 4px solid #f59e0b; border-style: dashed; } 
-        .day-block.free { border-left: 4px solid #3b82f6; } /* Free Day Blue */
-        .day-block.buffer { border-left: 4px solid #8b5cf6; } /* Buffer Day Purple */
+        .day-block.free { border-left: 4px solid #3b82f6; } 
+        .day-block.buffer { border-left: 4px solid #8b5cf6; } 
 
         .day-padding { padding: 20px; }
 
@@ -212,7 +215,7 @@
 <main>
     <div id="view-assets" class="view-section active">
         <div class="intro-text">
-            <p>本提案旨在利用 3D Gaussian Splatting 技術數位化保存杭州被忽視的文化遺產。以下為經過篩選的潛在掃描地點，按技術特徵分類，供指導教授評估選擇。</p>
+            <p>本提案旨在利用 3D Gaussian Splatting 技術數位化保存杭州被忽視的文化遺產。以下候選地點已根據<b>材質紋理</b>、<b>幾何複雜度</b>及<b>學術保存價值</b>進行評估，並標註推薦度（Rating）。</p>
         </div>
 
         <div id="assets-container">
@@ -232,7 +235,7 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 
 <script>
-    // --- DATA: ASSET LIBRARY (Updated: English names removed) ---
+    // --- DATA: ASSET LIBRARY (Added Ratings & New Locations) ---
     const assetCategories = [
         {
             id: "core",
@@ -244,8 +247,9 @@
                     dist: "near",
                     distText: "市區核心",
                     type: "金屬材質 / 建築",
+                    rating: 5,
                     spec: "高反光銅殿 + 複雜斗拱",
-                    reason: "測試 3DGS 對金屬氧化紋理 (Patina) 及各向異性反射 (Anisotropy) 的還原能力。是本計畫最重要的技術基準點。",
+                    reason: "【5星推薦】測試 3DGS 對金屬氧化紋理 (Patina) 及各向異性反射的還原能力。最重要的基準點。",
                     query: "杭州香積寺",
                     lat: 30.296, lng: 120.147
                 }
@@ -261,8 +265,9 @@
                     dist: "mid",
                     distText: "景區 (易堵)",
                     type: "木構 / 室內",
+                    rating: 4,
                     spec: "13.6米楠木轉輪藏 + 宋式紅牆",
-                    reason: "全杭州最安靜的寺廟，適合長時間無干擾掃描。挑戰室內複雜木結構的高精度重建。",
+                    reason: "【4星推薦】全杭州最安靜的寺廟。挑戰室內複雜木結構的高精度重建，需解決光照不足問題。",
                     query: "慧因高麗寺 轉輪藏",
                     lat: 30.228, lng: 120.125
                 },
@@ -272,10 +277,23 @@
                     dist: "far",
                     distText: "遠郊 (1hr+)",
                     type: "大場景 / 對稱",
+                    rating: 4,
                     spec: "宋代極簡風格 + 中軸線佈局",
-                    reason: "日本禪院鼻祖。適合利用無人機測試對稱建築群 (Symmetry) 的大場景三維重建。",
+                    reason: "【4星推薦】日本禪院鼻祖。建築尺度大，適合利用無人機測試對稱建築群的三維重建。",
                     query: "徑山萬壽禪寺",
                     lat: 30.380, lng: 119.855
+                },
+                {
+                    name: "胡慶餘堂 (新增)",
+                    area: "上城區",
+                    dist: "near",
+                    distText: "市區 (河坊街)",
+                    type: "晚清建築 / 白牆",
+                    rating: 4,
+                    spec: "高聳白牆 + 封火牆 + 藥局格局",
+                    reason: "【4星推薦】『江南藥王』。典型的高牆窄巷結構，白色牆面對特徵點提取有一定挑戰性。",
+                    query: "杭州胡慶餘堂",
+                    lat: 30.238, lng: 120.168
                 },
                 {
                     name: "小河公園",
@@ -283,8 +301,9 @@
                     dist: "near",
                     distText: "市區",
                     type: "工業遺存",
+                    rating: 3,
                     spec: "銹跡油罐 + 網狀雲棚",
-                    reason: "開放式場地。巨大的圓柱體油罐與網狀鋼結構，是測試『細絲結構』與『金屬銹跡』的絕佳素材。",
+                    reason: "【3星推薦】開放式場地。適合測試細絲結構與金屬銹跡。結構相對簡單，作為補充素材。",
                     query: "杭州小河公園 油罐",
                     lat: 30.315, lng: 120.135
                 }
@@ -300,8 +319,9 @@
                     dist: "far",
                     distText: "遠郊 (1.5hr+)",
                     type: "水系 / 徽派",
+                    rating: 5,
                     spec: "地下坎兒井 + 馬頭牆矩陣",
-                    reason: "獨有的獨立地下水系 (需補光)。高密度的馬頭牆非常適合無人機上帝視角 (Top-down) 掃描。",
+                    reason: "【5星推薦】獨有的獨立地下水系。高密度的馬頭牆非常適合無人機上帝視角掃描，幾何豐富。",
                     query: "桐廬深澳古村",
                     lat: 29.835, lng: 119.820
                 },
@@ -311,8 +331,9 @@
                     dist: "far",
                     distText: "遠郊 (1hr+)",
                     type: "迷宮 / 石材",
+                    rating: 4,
                     spec: "鵝卵石牆面 + 迷宮巷道",
-                    reason: "孫權後裔聚居地。全鎮由鵝卵石鋪就，提供極高頻的幾何紋理 (High-frequency Texture)，測試細節解析度。",
+                    reason: "【4星推薦】全鎮由鵝卵石鋪就，提供極高頻的幾何紋理 (High-frequency Texture)，測試細節解析度。",
                     query: "富陽龍門古鎮",
                     lat: 30.005, lng: 119.955
                 },
@@ -322,8 +343,9 @@
                     dist: "mid",
                     distText: "城北 (45min)",
                     type: "運河 / 橋樑",
+                    rating: 4,
                     spec: "七孔廣濟橋 + 水面倒影",
-                    reason: "京杭大運河上僅存的七孔石拱橋。可測試 3DGS 對水面反射 (Water Reflection) 的處理效果。",
+                    reason: "【4星推薦】可測試 3DGS 對水面反射 (Water Reflection) 的處理效果。古橋幾何結構優美。",
                     query: "塘棲古鎮 廣濟橋",
                     lat: 30.435, lng: 120.190
                 },
@@ -333,8 +355,9 @@
                     dist: "near",
                     distText: "市區",
                     type: "市井 / 木構",
+                    rating: 3,
                     spec: "過塘行老屋 + 燈籠工藝",
-                    reason: "運河源頭，非商業化社區。適合捕捉真實的生活痕跡與老化木材紋理。",
+                    reason: "【3星推薦】運河源頭。適合捕捉真實的生活痕跡與老化木材紋理，作為Day 1熱身。",
                     query: "杭州西興古鎮",
                     lat: 30.180, lng: 120.230
                 }
@@ -342,18 +365,43 @@
         },
         {
             id: "nature",
-            title: "自然與混合場景 (Nature & Hybrid)",
+            title: "雕刻與園林 (Sculpture & Gardens)",
             items: [
                 {
-                    name: "梅家塢",
+                    name: "飛來峰造像 (新增)",
                     area: "西湖區",
                     dist: "mid",
-                    distText: "景區",
-                    type: "植被 / 地形",
-                    spec: "梯田茶園 + 農居",
-                    reason: "測試 3DGS 處理複雜植被 (Vegetation) 與地形起伏的能力。",
-                    query: "杭州梅家塢",
-                    lat: 30.200, lng: 120.080
+                    distText: "靈隱景區",
+                    type: "石窟 / 雕刻",
+                    rating: 5,
+                    spec: "五代至元代石刻 + 複雜岩石表面",
+                    reason: "【5星推薦】石窟造像具有極高的歷史價值與複雜幾何表面，是 Photogrammetry/3DGS 的頂級素材。",
+                    query: "杭州飛來峰造像",
+                    lat: 30.239, lng: 120.105
+                },
+                {
+                    name: "六和塔",
+                    area: "西湖區",
+                    dist: "mid",
+                    distText: "錢塘江畔",
+                    type: "磚木結構 / 塔",
+                    rating: 5,
+                    spec: "13層八角結構 + 螺旋階梯",
+                    reason: "【5星推薦】巨大的體量與重複的幾何層次，結構內外皆可掃描，檢驗結構一致性的完美目標。",
+                    query: "杭州六和塔",
+                    lat: 30.196, lng: 120.129
+                },
+                {
+                    name: "郭莊 (新增)",
+                    area: "西湖區",
+                    dist: "mid",
+                    distText: "西湖邊",
+                    type: "江南園林",
+                    rating: 4,
+                    spec: "水榭 + 假山 + 亭台",
+                    reason: "【4星推薦】園林結構複雜，存在大量遮擋 (Occlusion) 與透視關係，是測試演算法強健性的好地方。",
+                    query: "杭州郭莊",
+                    lat: 30.245, lng: 120.128
                 },
                 {
                     name: "白塔公園",
@@ -361,8 +409,9 @@
                     dist: "near",
                     distText: "市區",
                     type: "鐵路 / 石塔",
+                    rating: 3,
                     spec: "蒸汽火車頭 + 五代石塔",
-                    reason: "場地空曠，無人機飛行風險低。結合了石質文物與工業機械兩種極端材質。",
+                    reason: "【3星推薦】場地空曠，無人機飛行風險低。結合了石質文物與工業機械兩種材質。",
                     query: "杭州白塔公園",
                     lat: 30.195, lng: 120.145
                 }
@@ -402,16 +451,16 @@
             commuteLevel: 90,
             commuteText: "通勤：高 (往返3hr+)",
             isBlank: true,
-            desc: "建議安排：深澳古村 (桐廬縣) 或 龍門古鎮 (富陽區)。均需長途交通，建議包車。"
+            desc: "建議安排：深澳古村 (5星/水系) 或 龍門古鎮 (4星/迷宮)。均需長途交通，建議包車。"
         },
         {
             day: "Day 4",
             status: "tbd",
-            label: "待定：山林與禪意",
+            label: "待定：建築與雕刻",
             commuteLevel: 60,
-            commuteText: "通勤：中 (山路)",
+            commuteText: "通勤：中",
             isBlank: true,
-            desc: "建議安排：徑山寺 (餘杭區/對稱結構) 或 梅家塢茶園 (西湖區/自然植被)。"
+            desc: "建議安排：飛來峰造像 (5星/石窟細節) 或 六和塔 (5星/巨型古塔)。"
         },
         {
             day: "Day 5",
@@ -420,7 +469,7 @@
             commuteLevel: 50,
             commuteText: "通勤：中 (景區堵車)",
             isBlank: true,
-            desc: "建議安排：慧因高麗寺 (室內/西湖區) 或 饅頭山社區 (老街/上城區)。需極早出發避開遊客。"
+            desc: "建議安排：慧因高麗寺 (4星/室內) 或 郭莊 (4星/園林結構)。需極早出發避開遊客。"
         },
         {
             day: "Day 6",
@@ -443,7 +492,7 @@
             commuteText: "通勤：視地點而定",
             events: [
                 { time: "09:00", title: "數據修復 (Data Recovery)", desc: "根據 D1-D5 的 QA 報告，返回有缺陷的地點 (如屋頂破損、水面重建失敗) 進行補拍。", assets: ["Re-shoot"] },
-                { time: "14:00", title: "備選考察", desc: "若所有數據完美，可前往白塔公園拍攝火車頭，或進行城市夜景掃描。", assets: ["Optional"] }
+                { time: "14:00", title: "備選考察", desc: "若所有數據完美，可前往胡慶餘堂 (4星) 拍攝傳統白牆建築。", assets: ["Optional"] }
             ]
         },
         {
@@ -470,16 +519,18 @@
                 const googleUrl = `https://www.google.com/search?tbm=isch&q=${encodeURIComponent(item.query)}`;
                 const amapUrl = `https://www.amap.com/search?query=${encodeURIComponent(item.query)}&city=330100`;
                 
-                // Determine Distance Tag Class
                 let distClass = 'dist-near';
                 if(item.dist === 'mid') distClass = 'dist-mid';
                 if(item.dist === 'far') distClass = 'dist-far';
+
+                // Generate Stars
+                let stars = '★'.repeat(item.rating) + '☆'.repeat(5 - item.rating);
 
                 return `
                     <div class="asset-card">
                         <div class="card-header-row">
                             <div class="card-top">
-                                <h3 class="card-title">${item.name}</h3>
+                                <h3 class="card-title">${item.name} <span class="star-rating">${stars}</span></h3>
                                 <span class="district-badge">${item.area}</span>
                             </div>
                             <div class="card-sub-row">
@@ -490,7 +541,7 @@
                         <div class="card-body">
                             <div class="tech-spec"><strong>資產特徵:</strong> ${item.spec}</div>
                             <div class="reason-box">
-                                <strong>選址理由：</strong>${item.reason}
+                                <strong>3DGS 推薦理由：</strong>${item.reason}
                             </div>
                             <div class="action-row">
                                 <a href="${googleUrl}" target="_blank" class="btn-link btn-google">
@@ -576,7 +627,7 @@
 
             // Commute Meter Color Logic
             let commuteLevel = day.commuteLevel || 0;
-            let barColor = `linear-gradient(90deg, #10b981, #10b981)`; // Default Green
+            let barColor = `linear-gradient(90deg, #10b981, #10b981)`; 
             if(commuteLevel > 40) barColor = `linear-gradient(90deg, #10b981, #f59e0b)`;
             if(commuteLevel > 70) barColor = `linear-gradient(90deg, #10b981, #f59e0b, #ef4444)`;
             if(commuteLevel === 0) barColor = `transparent`; 
